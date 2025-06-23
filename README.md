@@ -1,5 +1,7 @@
 ![image](https://github.com/user-attachments/assets/18c2c4e3-7823-4107-8cc7-afda5ac0875d)
 
+![demo](https://github.com/solosolve-ai/solosolve-ai/blob/main/docs/solosolve_website-demo.gif)
+
 <p align="center">
   <a href="https://solosolve-ai-demo.lovable.app/" target="_blank">
     <img src="https://img.shields.io/badge/%F0%9F%9A%80%20Live%20Demo-Online-green?style=for-the-badge" alt="Live Demo"/>
