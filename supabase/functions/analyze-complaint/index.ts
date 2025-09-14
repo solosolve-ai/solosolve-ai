@@ -17,14 +17,10 @@ interface AnalyzeComplaintRequest {
 
 interface GemmaClassification {
   is_actionable: boolean;
-  complaint_category: string;
-  decision_recommendation: string;
   info_complete: boolean;
-  tone: string;
-  refund_percentage: number;
-  sentiment: string;
-  aggression: string;
-  reasoning: string;
+  complaint_category: string;
+  resolution_recommendation: string;
+  reasoning?: string;
 }
 
 serve(async (req) => {
@@ -64,102 +60,79 @@ serve(async (req) => {
       .eq('user_id', userId)
       .single();
 
-    // 3. Enhanced complaint analysis for better classification
+    // Enhanced complaint analysis for better classification
     const complaintLower = complaintText.toLowerCase();
     const complaintLength = complaintText.length;
     
-    // Detect specific issue types
+    // Detect specific issue types with more precise mapping to new categories
     const isSizingIssue = /size|sizing|fit|fitting|too small|too big|large|small|doesn't fit|wrong size/i.test(complaintText);
     const isDamageIssue = /damage|damaged|broken|crack|tear|defect|quality/i.test(complaintText);
     const isShippingIssue = /shipping|delivery|arrived|late|delay|missing/i.test(complaintText);
-    const isReturnIssue = /return|refund|exchange|money back/i.test(complaintText);
+    const isWrongItem = /wrong item|incorrect|not what i ordered|different/i.test(complaintText);
+    const isNotAsDescribed = /not as described|different than picture|misleading|false advertising/i.test(complaintText);
     
-    // Detect emotional content
-    const hasEmotionalWords = /angry|frustrated|disappointed|upset|terrible|awful|hate|love|amazing|horrible|worst|best/i.test(complaintText);
-    const hasUrgentWords = /urgent|immediately|asap|right now|quickly|fast/i.test(complaintText);
-    
-    // Create enhanced fallback classification
+    // Create enhanced fallback classification matching new model categories
     const createSmartClassification = (): GemmaClassification => {
-      let category = "General Inquiry";
-      let recommendation = "Provide_Policy_Information";
-      let refundPercentage = 0;
-      let tone = "Neutral_Direct";
+      let category = "N/A";
+      let recommendation = "N/A";
       
       if (isSizingIssue) {
-        category = "Sizing Issue";
-        recommendation = "Exchange_Offered";
-        refundPercentage = 0; // Exchange first, then refund if needed
-        tone = hasEmotionalWords ? "Empathetic_Standard" : "Helpful_Informative";
+        category = "Incorrect Size / Fit";
+        recommendation = "Replacement";
       } else if (isDamageIssue) {
-        category = "Damaged Item";
-        recommendation = "Full_Refund_With_Return";
-        refundPercentage = 100;
-        tone = "Understanding_Apologetic";
-      } else if (isShippingIssue) {
-        category = "Shipping Problem";
-        recommendation = "Further_Information_Required";
-        refundPercentage = 25;
-        tone = "Empathetic_Standard";
-      } else if (isReturnIssue) {
-        category = "Return Process Issue";
-        recommendation = "Provide_Policy_Information";
-        refundPercentage = 0;
-        tone = "Helpful_Informative";
+        category = "Damaged or Defective";
+        recommendation = "Full Refund";
+      } else if (isWrongItem) {
+        category = "Wrong or Incomplete Order";
+        recommendation = "Replacement";
+      } else if (isNotAsDescribed) {
+        category = "Item Not as Described";
+        recommendation = "Full Refund";
       } else if (complaintLength > 30) {
-        category = "Quality Issue";
-        recommendation = "Further_Information_Required";
-        refundPercentage = 25;
-        tone = hasEmotionalWords ? "Empathetic_Standard" : "Neutral_Direct";
+        category = "Damaged or Defective";
+        recommendation = "Full Refund";
       }
 
       return {
-        is_actionable: complaintLength > 10 && (isSizingIssue || isDamageIssue || isShippingIssue || isReturnIssue),
+        is_actionable: complaintLength > 10 && (isSizingIssue || isDamageIssue || isShippingIssue || isWrongItem || isNotAsDescribed),
         complaint_category: category,
-        decision_recommendation: recommendation,
+        resolution_recommendation: recommendation,
         info_complete: complaintLength > 20,
-        tone: tone,
-        refund_percentage: refundPercentage,
-        sentiment: hasEmotionalWords ? "negative" : "neutral",
-        aggression: hasUrgentWords ? "medium" : hasEmotionalWords ? "low" : "none",
         reasoning: `Smart classification: detected ${category.toLowerCase()} based on keywords and content analysis`
       };
     };
 
-    // 4. Try Gemma classification with improved error handling
+    // 4. Try Gemma 3-270m classification with improved error handling
     let gemmaResponse: GemmaClassification = createSmartClassification();
-    let gemmaReasoning = gemmaResponse.reasoning;
+    let gemmaReasoning = gemmaResponse.reasoning || "";
     let gemmaSuccess = false;
 
     try {
-      console.log('Attempting Gemma classification...');
+      console.log('Attempting Gemma 3-270m classification...');
       
-      const gemmaPrompt = `
-<start_of_turn>user
-You are a specialized AI classifier for customer complaints. Analyze the following complaint and provide structured classification.
+      // Create prompt matching the training format
+      const createPrompt = (row: any) => {
+        const price_str = searchResults && searchResults[0]?.price ? `$${parseFloat(searchResults[0].price).toFixed(2)}` : "N/A";
+        const product_title = searchResults && searchResults[0]?.product_name ? searchResults[0].product_name : "Fashion Item";
+        const rating = searchResults && searchResults[0]?.rating ? searchResults[0].rating : "N/A";
+        
+        return (
+          "Analyze the following customer complaint about an Amazon Fashion product.\n\n" +
+          "### Product Information ###\n" +
+          `Title: ${product_title}\n` +
+          `Price: ${price_str}\n` +
+          `Customer's Rating: ${rating}/5\n\n` +
+          "### Customer Complaint ###\n" +
+          `Text: "${complaintText}"`
+        );
+      };
 
-Customer Complaint: "${complaintText}"
+      const inputPrompt = createPrompt({});
+      const gemmaPrompt = `<start_of_turn>user\n${inputPrompt}<end_of_turn>\n<start_of_turn>model\n`;
 
-User Profile: ${profile ? JSON.stringify(profile) : 'No profile data'}
-Transaction History: ${searchResults ? JSON.stringify(searchResults.slice(0, 3)) : 'No transaction history'}
-
-Provide your analysis in this exact JSON format:
-{
-  "is_actionable": boolean,
-  "complaint_category": "one of: Sizing Issue, Damaged Item, Not as Described, Shipping Problem, Policy Inquiry, Late Delivery, Wrong Item Received, Quality Issue, Return Process Issue, Other",
-  "decision_recommendation": "one of: Full_Refund_No_Return, Full_Refund_With_Return, Partial_Refund_No_Return, Partial_Refund_With_Return, Exchange_Offered, Deny_Request_Policy_Violation, Further_Information_Required, Escalate_To_Human_Agent, Provide_Policy_Information, Other",
-  "info_complete": boolean,
-  "tone": "one of: Empathetic_Standard, Neutral_Direct, Understanding_Apologetic, Firm_Polite, Helpful_Informative",
-  "refund_percentage": number between 0-100,
-  "sentiment": "one of: positive, neutral, negative, mixed, very_negative",
-  "aggression": "one of: none, low, medium, high",
-  "reasoning": "detailed explanation of your classification logic"
-}
-<end_of_turn>
-<start_of_turn>model
-`;
-
+      // Update to use the new Gemma 3-270m model (will need to update once uploaded)
       const huggingFaceResponse = await fetch(
-        'https://api-inference.huggingface.co/models/ShovalBenjer/gemma-3-4b-fashion-multitask_A4000_v7',
+        'https://api-inference.huggingface.co/models/google/gemma-3-270m',
         {
           headers: {
             'Authorization': `Bearer ${Deno.env.get('HUGGING_FACE_API_KEY')}`,
@@ -169,7 +142,7 @@ Provide your analysis in this exact JSON format:
           body: JSON.stringify({
             inputs: gemmaPrompt,
             parameters: {
-              max_new_tokens: 512,
+              max_new_tokens: 256,
               temperature: 0.1,
               do_sample: false,
               return_full_text: false,
@@ -191,18 +164,25 @@ Provide your analysis in this exact JSON format:
         const generatedText = gemmaResult[0].generated_text;
         console.log('Generated text:', generatedText);
         
+        // Expected format: JSON with complaint_category, resolution_recommendation, is_actionable, info_complete
         const jsonMatch = generatedText.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           try {
             const parsedResponse = JSON.parse(jsonMatch[0]);
             console.log('Parsed Gemma response:', parsedResponse);
             
-            // Validate the parsed response has required fields
-            if (parsedResponse.is_actionable !== undefined && parsedResponse.complaint_category) {
-              gemmaResponse = parsedResponse;
-              gemmaReasoning = parsedResponse.reasoning || "Gemma classification completed";
+            // Map to expected format
+            if (parsedResponse.complaint_category && parsedResponse.resolution_recommendation !== undefined) {
+              gemmaResponse = {
+                is_actionable: Boolean(parsedResponse.is_actionable),
+                info_complete: Boolean(parsedResponse.info_complete),
+                complaint_category: parsedResponse.complaint_category,
+                resolution_recommendation: parsedResponse.resolution_recommendation,
+                reasoning: "Gemma 3-270m fine-tuned classification"
+              };
+              gemmaReasoning = "Gemma 3-270m fine-tuned model classification completed";
               gemmaSuccess = true;
-              console.log('Gemma classification successful');
+              console.log('Gemma 3-270m classification successful');
             } else {
               console.log('Gemma response missing required fields, using fallback');
             }
@@ -252,18 +232,29 @@ Be helpful and guide them to provide the information you need to assist them pro
       // Generate specific response based on complaint category
       let specificGuidance = "";
       switch (gemmaResponse.complaint_category) {
-        case "Sizing Issue":
+        case "Incorrect Size / Fit":
           specificGuidance = `This is a sizing issue. Offer an exchange first, and if that's not suitable, offer a refund. Be understanding about sizing challenges with online shopping.`;
           break;
-        case "Damaged Item":
+        case "Damaged or Defective":
           specificGuidance = `This is a damaged item complaint. Apologize sincerely, offer a full refund with return, and expedite the resolution process.`;
           break;
-        case "Shipping Problem":
-          specificGuidance = `This is a shipping-related issue. Show empathy for the inconvenience and provide clear next steps for resolution.`;
+        case "Wrong or Incomplete Order":
+          specificGuidance = `This is a wrong/incomplete order issue. Apologize for the error and offer to send the correct item or provide a full refund.`;
+          break;
+        case "Item Not as Described":
+          specificGuidance = `This item was not as described. Show empathy and offer a full refund or exchange based on customer preference.`;
           break;
         default:
           specificGuidance = `Address this ${gemmaResponse.complaint_category.toLowerCase()} with appropriate empathy and solution-focused approach.`;
       }
+
+      const resolutionGuidance = gemmaResponse.resolution_recommendation === "Full Refund" 
+        ? "Offer a full refund" 
+        : gemmaResponse.resolution_recommendation === "Replacement"
+        ? "Offer a replacement or exchange"
+        : gemmaResponse.resolution_recommendation === "Resend"
+        ? "Offer to resend the item"
+        : "Provide appropriate resolution based on the situation";
 
       return `You are "SoloSolver", a professional customer service AI assistant representing our company. You must respond in a formal, courteous, and professional manner appropriate for business correspondence.
 
@@ -272,10 +263,10 @@ Be helpful and guide them to provide the information you need to assist them pro
 
 **AI Classification Analysis:**
 Category: ${gemmaResponse.complaint_category}
-Recommendation: ${gemmaResponse.decision_recommendation}
-Suggested Tone: ${gemmaResponse.tone}
-Refund Percentage: ${gemmaResponse.refund_percentage}%
-${gemmaSuccess ? 'Classification Source: Gemma AI Model' : 'Classification Source: Smart Fallback System'}
+Recommendation: ${gemmaResponse.resolution_recommendation}
+Is Actionable: ${gemmaResponse.is_actionable ? 'Yes' : 'No'}
+Information Complete: ${gemmaResponse.info_complete ? 'Yes' : 'No'}
+${gemmaSuccess ? 'Classification Source: Gemma 3-270m Fine-tuned Model' : 'Classification Source: Smart Fallback System'}
 
 **Customer Profile & History:**
 ${profile ? JSON.stringify(profile, null, 2) : 'No profile available'}
@@ -285,6 +276,7 @@ ${hasTransactionHistory ? JSON.stringify(searchResults, null, 2) : 'No relevant 
 
 **Specific Instructions:**
 ${specificGuidance}
+Resolution Guidance: ${resolutionGuidance}
 
 **General Response Guidelines:**
 1. Respond in a professional, formal tone appropriate for customer service
