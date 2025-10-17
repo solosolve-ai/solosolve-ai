@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { MessageSquare, Users, BarChart3, Settings, LogOut, User, ShieldCheck } from "lucide-react";
-import { BeamsBackground } from "@/components/BeamsBackground";
 
 interface SimulatedUser {
   id: string;
@@ -105,7 +104,7 @@ const Index = ({ currentUser, onLogout }: IndexProps) => {
   };
 
   return (
-    <BeamsBackground className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <div className="relative z-10 flex flex-col min-h-screen">
         {/* Header */}
         <header className="p-6">
@@ -178,7 +177,7 @@ const Index = ({ currentUser, onLogout }: IndexProps) => {
           </div>
         </main>
       </div>
-    </BeamsBackground>
+    </div>
   );
 };
 

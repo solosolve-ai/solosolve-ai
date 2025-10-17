@@ -86,7 +86,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser }) => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         <AppSidebar />
         <main className="flex-1 p-8">
           <div className="max-w-7xl mx-auto">
@@ -100,7 +100,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser }) => {
             
             <div className="grid gap-6 mb-8">
               <motion.div 
-                className="bg-white rounded-xl shadow-lg p-6"
+                className="bg-white/10 backdrop-blur border border-white/20 rounded-xl shadow-lg p-6"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.1 }}
@@ -109,7 +109,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser }) => {
               </motion.div>
               
               <motion.div 
-                className="bg-white rounded-xl shadow-lg p-6"
+                className="bg-white/10 backdrop-blur border border-white/20 rounded-xl shadow-lg p-6"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
@@ -119,7 +119,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser }) => {
             </div>
 
             <motion.div 
-              className="bg-white rounded-xl shadow-lg p-6 mb-8"
+              className="bg-white/10 backdrop-blur border border-white/20 rounded-xl shadow-lg p-6 mb-8"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}

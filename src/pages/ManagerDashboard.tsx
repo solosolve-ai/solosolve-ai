@@ -7,6 +7,7 @@ import DashboardAnalytics from "@/components/DashboardAnalytics";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Users, UserCheck, UserX } from "lucide-react";
 
 // Real complaint data from labeled_complaints_500.csv
@@ -127,10 +128,11 @@ const ManagerDashboard = () => {
 
               <TabsContent value="overview">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                  <Card className="p-6 bg-navy-light text-white">
+                  <Card className="p-6 bg-navy-light text-white cursor-pointer hover:bg-navy-light/80 transition-colors" onClick={() => window.location.href = '#team'}>
                     <Users className="h-8 w-8 mb-4 text-primary" />
                     <h3 className="text-lg font-semibold">Team Members</h3>
                     <p className="text-3xl font-bold mt-2">{teamMembers.length}</p>
+                    <p className="text-sm text-gray-400 mt-2">Click to view team</p>
                   </Card>
                   <Card className="p-6 bg-navy-light text-white">
                     <UserCheck className="h-8 w-8 mb-4 text-green-500" />
@@ -152,9 +154,24 @@ const ManagerDashboard = () => {
               </TabsContent>
 
               <TabsContent value="team">
+                <div className="mb-6 flex gap-4">
+                  <Button 
+                    onClick={() => window.alert('Team member management coming soon')}
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    Add Team Member
+                  </Button>
+                  <Button 
+                    onClick={() => window.alert('Bulk assign coming soon')}
+                    variant="outline"
+                    className="border-white/20 text-white hover:bg-white/10"
+                  >
+                    Bulk Assign
+                  </Button>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {teamMembers.map((member) => (
-                    <Card key={member.id} className="p-6 bg-navy-light text-white">
+                    <Card key={member.id} className="p-6 bg-navy-light text-white hover:bg-navy-light/80 transition-colors">
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold">{member.name}</h3>
                         <span className={`px-2 py-1 rounded-full text-sm ${
@@ -174,6 +191,13 @@ const ManagerDashboard = () => {
                           <span>{member.resolutionRate}</span>
                         </div>
                       </div>
+                      <Button 
+                        onClick={() => window.alert(`Viewing details for ${member.name}`)}
+                        variant="outline" 
+                        className="w-full mt-4 border-white/20 text-white hover:bg-white/10"
+                      >
+                        View Details
+                      </Button>
                     </Card>
                   ))}
                 </div>
