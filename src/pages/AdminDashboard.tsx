@@ -9,56 +9,61 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Users, Shield, Database, Settings } from "lucide-react";
 
-const complaints = [
+// Real complaint data from labeled_complaints_500.csv
+const realComplaintsData = [
   {
-    id: "COM-001",
-    title: "Delayed Delivery",
-    description: "Package was supposed to arrive yesterday but still hasn't been delivered.",
-    status: "in-progress" as const,
-    date: "2024-02-20",
-    category: "Delivery",
-    priority: "high" as const,
-    customerName: "John Doe",
-    orderNumber: "ORD-12345",
-    channelOfComplaint: "web",
-    urgencyLevel: "high" as const,
-    sentimentScore: -0.8,
-    feedbackRating: 2,
+    text: "These have fallen apart in less than 2 months, seriously horrible quality.",
+    product_title: "NELEUS Women's 3 Pack Compression Base Layer Dry Fit Tank Top",
+    price: 21.96,
+    rating: 2.0,
+    complaint_category: "Damaged or Defective",
+    resolution_recommendation: "Replacement"
   },
   {
-    id: "COM-002",
-    title: "Wrong Item Received",
-    description: "I received a different item than what I ordered.",
-    status: "new" as const,
-    date: "2024-02-19",
-    category: "Product",
-    priority: "medium" as const,
-    customerName: "Jane Smith",
-    orderNumber: "ORD-12346",
+    text: "So flat like an ass",
+    product_title: "Jeanewpole1 Womens Down Puffer Short Jacket Quilted Lightweight Coats Outerwear",
+    price: 54.99,
+    rating: 1.0,
+    complaint_category: "Item Not as Described",
+    resolution_recommendation: "Full Refund"
   },
   {
-    id: "COM-003",
-    title: "Missing Package",
-    description: "My package is marked as delivered but I haven't received it.",
-    status: "resolved" as const,
-    date: "2024-02-18",
-    category: "Delivery",
-    priority: "low" as const,
-    customerName: "Alice Johnson",
-    orderNumber: "ORD-12347",
+    text: "Way too large, material also stretches out. Order DOWN!",
+    product_title: "U.S. Polo Assn. Womens Jogger Lounge Pants  Pajama Pants for Women",
+    price: 14.95,
+    rating: 2.0,
+    complaint_category: "Incorrect Size / Fit",
+    resolution_recommendation: "Replacement"
   },
   {
-    id: "COM-004",
-    title: "Poor Customer Service",
-    description: "The customer service representative was unhelpful and rude.",
-    status: "new" as const,
-    date: "2024-02-21",
-    category: "Service",
-    priority: "high" as const,
-    customerName: "Bob Wilson",
-    orderNumber: "ORD-12348",
+    text: "The frames were already bent when taken out of the package.",
+    product_title: "Womens Elegant Rimless Shield Warp Luxury Designer Sunglasses",
+    price: 12.95,
+    rating: 1.0,
+    complaint_category: "Damaged or Defective",
+    resolution_recommendation: "Replacement"
   },
+  {
+    text: "The only thing that saw the same as what was pictured was the colors! The fabric for the top was thin and flimsy.",
+    product_title: "Adult Sexy Birthday Cake Costume",
+    price: 49.99,
+    rating: 1.0,
+    complaint_category: "Item Not as Described",
+    resolution_recommendation: "Full Refund"
+  }
 ];
+
+const complaints = realComplaintsData.map((item, index) => ({
+  id: `COM-${String(index + 1).padStart(3, '0')}`,
+  title: item.product_title,
+  description: item.text,
+  status: item.rating >= 2 ? 'in-progress' as const : 'new' as const,
+  date: new Date(Date.now() - index * 86400000).toISOString().split('T')[0],
+  category: item.complaint_category,
+  priority: item.rating <= 1 ? 'high' as const : 'medium' as const,
+  customerName: `Customer ${index + 1}`,
+  orderNumber: `ORD-${String(12345 + index).padStart(5, '0')}`,
+}));
 
 const systemMetrics = {
   totalUsers: 1250,

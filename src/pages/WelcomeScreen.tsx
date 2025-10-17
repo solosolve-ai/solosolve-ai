@@ -14,7 +14,7 @@ const features = [
   {
     icon: Brain,
     title: "AI-Powered Analysis",
-    description: "Advanced Gemma 3-4B model classifies complaints with 95% accuracy",
+    description: "Compact Gemma 3-270M model classifies complaints with high accuracy",
     color: "bg-purple-500"
   },
   {
@@ -40,15 +40,15 @@ const features = [
 const technicalFeatures = [
   {
     icon: Bot,
-    title: "Gemma 3-4B Foundation",
-    description: "Fine-tuned Google Gemma 3-4B model with specialized complaint classification heads",
-    details: "Multi-task learning architecture with separate classification heads for category, priority, and sentiment analysis"
+    title: "Gemma 3-270M Foundation",
+    description: "Fine-tuned compact Google Gemma 3-270M model with specialized complaint classification",
+    details: "Multi-task learning architecture trained on 4.5K silver standard labels judged by Gemini 2.5 Pro"
   },
   {
     icon: Database,
-    title: "Amazon Dataset Training",
-    description: "Trained on 500K+ Amazon product reviews and complaints with augmented supervision",
-    details: "Gemini-augmented supervised fine-tuning with synthetic data generation for edge cases"
+    title: "Amazon Reviews 2023 Dataset",
+    description: "Trained on curated Amazon Fashion reviews with Gemini 2.5 Pro supervision",
+    details: "4.5K high-quality labeled complaints from Amazon Reviews 2023 dataset with precise resolution recommendations"
   },
   {
     icon: Cpu,
@@ -222,8 +222,8 @@ const FeaturesSection = () => {
             Powered by Advanced AI
           </h2>
           <p className="text-xl text-white/70 max-w-3xl mx-auto">
-            Our system combines Gemma 3-4B for classification and Gemini for orchestration, 
-            delivering unparalleled accuracy and intelligence.
+            Our system combines compact Gemma 3-270M for classification and Gemini for orchestration, 
+            delivering efficient and intelligent complaint resolution.
           </p>
         </motion.div>
 
@@ -264,7 +264,7 @@ const FeaturesSection = () => {
 
 const TechnologySection = () => {
   return (
-    <section id="technology" className="py-20 px-6 bg-black/20">
+    <section id="technology" className="py-20 px-6 bg-gradient-to-br from-purple-900/30 to-blue-900/30">
       <div className="container mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
@@ -277,8 +277,8 @@ const TechnologySection = () => {
             Advanced AI Technology
           </h2>
           <p className="text-xl text-white/70 max-w-3xl mx-auto">
-            Built on state-of-the-art machine learning with Gemini-augmented supervised training 
-            on Amazon's extensive dataset of customer interactions.
+            Built on efficient machine learning with 4.5K silver standard labels from Amazon Reviews 2023, 
+            judged and supervised by Gemini 2.5 Pro for high-quality complaint classification.
           </p>
         </motion.div>
 
